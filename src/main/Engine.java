@@ -1,6 +1,11 @@
 package main;
 
+import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JPanel;
 
 /**
  * Holds all objects in game,
@@ -8,39 +13,48 @@ import java.awt.Graphics2D;
  * @author Nathan
  *
  */
-public class Engine {
+public class Engine extends JPanel{
+	private static final long serialVersionUID = 1L;
 	
-	final int width;
-	final int height;
+	//final int width;
+	//final int height;
 	
-	private Asteroid[] asteroids;
+	private List<Asteroid> asteroids;
 	private RocketShip ship = null;
 	
 	Engine(int width, int height) {
-		this.width = width;
-		this.height = height;
+		this.setFocusable(true);
+		this.setBounds(0, 0, width, height);
+		this.setVisible(true);
+		this.requestFocus();
+		//this.width = width;
+		//this.height = height;
 		
 		resetGame();
 	}
 	
 	void resetGame() {
-		asteroids = new Asteroid[5];
-		for(int i = 0; i<asteroids.length; i++)
-			asteroids[i] = new Asteroid(width, height);
+		asteroids = new ArrayList<Asteroid>(5);
+		for(int i = 0; i<5; i++)
+			asteroids.add(new Asteroid(getWidth(), getHeight()));
+		
+		ship = null;
 	}
 	
-	void run(Graphics2D g) {
+	@Override
+	protected void paintComponent(Graphics g) {
+		super.paintComponent(g);
 		for(Asteroid a : asteroids)
 			a.updateA(asteroids);
 				
 		for(Asteroid a : asteroids) {
-			a.updateB(width, height);
-			a.draw(g);
+			a.updateB(getWidth(), getHeight());
+			a.draw((Graphics2D)g);
 		}
 		
 		if(ship != null) {
-			ship.update(asteroids, width, height);
-			ship.draw(g);
+			ship.update(asteroids, getWidth(), getHeight());
+			ship.draw((Graphics2D)g);
 		}
 	}
 	
@@ -48,6 +62,4 @@ public class Engine {
 	void mouseReleased(int x, int y) {
 		ship = new RocketShip(x, y);
 	}
-	
-	
 }

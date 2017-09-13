@@ -10,88 +10,85 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import io.Controller;
+import io.Pointer;
 
 public class Main {
 	private static final int width = 900;
 	private static final int height = 600;
 		
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
+		//CREATE WINDOW
 		JFrame window = new JFrame("ASTEROIDS!!!!");
-				
-		
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		window.setResizable(false);
-		window.setVisible(true);
+		//window.setResizable(false);
 		window.setSize(width + window.getInsets().left + window.getInsets().right,
 				height + window.getInsets().top + window.getInsets().bottom);
 		window.setLocationRelativeTo(null);
-
-
+		window.setVisible(true);
 		
-		
+		//CREATE BUFFERED IMAGE && GRAPHICS VARIABLE
 		BufferedImage frame = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = frame.createGraphics();
 		g.setBackground(Color.BLACK);
 		
+		//INIT GAME ENGINE AND LISTENERS
 		Engine gameEngine = new Engine(width, height);
-		
-		addListeners(window, gameEngine);
-		
+		window.add(gameEngine);
+		addListeners(gameEngine, gameEngine);
+		gameEngine.requestFocusInWindow();
+
+		//Game Loop
 		while(true) {
-			gameEngine.run(g);
-			refresh(window, frame, g);
+			window.repaint();
+			Thread.sleep(4);
 		}
 	}
 	
-	private static void refresh(JFrame window, BufferedImage frame, Graphics2D g) {
-		window.getGraphics().drawImage(frame, window.getInsets().left, window.getInsets().top, null);
-		g.clearRect(0, 0, width, height);
-	}
-	
-	private static void addListeners(JFrame window, Engine gameEngine) {
-		window.addMouseListener(new MouseListener() {
+	/**
+	 * ALL THE LISTENERS MODIFY
+	 * PUBLIC-STATIC VARIABLES SO
+	 * THEY CAN BE ASSESSED IN A
+	 * TICK-BASED FASHION.
+	 */
+	private static void addListeners(JPanel panel, Engine gameEngine) {
+		panel.addMouseListener(new MouseListener() {
 			
-			public void mouseExited(MouseEvent arg0) {
-				PointerInfo.mousePressed = false;
+			public void mouseExited(MouseEvent e) {
+				Pointer.updateState(e, false);
 			}
-
-			public void mousePressed(MouseEvent arg0) {
-				PointerInfo.mousePressed = true;
+			public void mousePressed(MouseEvent e) {
+				Pointer.updateState(e, true);
 			}
-
-			@Override
 			public void mouseReleased(MouseEvent e) {
 				gameEngine.mouseReleased(e.getX(), e.getY());
-				PointerInfo.mousePressed = false;
+				Pointer.updateState(e, false);
 			}
+			
 			public void mouseClicked(MouseEvent arg0) {}
 			public void mouseEntered(MouseEvent arg0) {}
 		});
 		
-		window.addMouseMotionListener(new MouseMotionListener() {
-			@Override
+		panel.addMouseMotionListener(new MouseMotionListener() {
 			public void mouseMoved(MouseEvent e) {
-				PointerInfo.x = e.getX();
-				PointerInfo.y = e.getY();
+				Pointer.updateLocation(e);
 			}
 			
-			public void mouseDragged(MouseEvent arg0) {}
+			public void mouseDragged(MouseEvent e) {}
 			
 		});
 		
-		window.addKeyListener(new KeyListener() {
-
-			@Override
+		panel.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent e) {
-				ControllerInfo.update(e, true);
+				Controller.update(e, true);
 			}
-
-			@Override
 			public void keyReleased(KeyEvent e) {
-				ControllerInfo.update(e, false);
+				Controller.update(e, false);
 			}
 
-			@Override public void keyTyped(KeyEvent arg0) {}
+			public void keyTyped(KeyEvent e) {}
 		});
 	}
 }

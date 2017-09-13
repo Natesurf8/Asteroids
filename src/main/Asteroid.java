@@ -3,6 +3,8 @@ package main;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.util.List;
+import java.util.Random;
 
 public class Asteroid {
 	
@@ -17,7 +19,7 @@ public class Asteroid {
 	private Rectangle bounds;
 	
 	public Asteroid(int winWidth, int winHeight) {
-		radius = Math.random()*30 + 30;
+		radius = Math.random()*23 + 23;
 		
 		x = radius + Math.random()*(winWidth-radius*2);
 		y = radius + Math.random()*(winHeight-radius*2);
@@ -28,27 +30,43 @@ public class Asteroid {
 		bounds = new Rectangle((int)(x-radius), (int)(y-radius), (int)(radius*2), (int)(radius*2));
 	}
 	
+	public Asteroid(double x, double y, double scale) {
+		radius = Math.random()*23 + 23;
+		radius *= scale;
+		
+		Random r = new Random();
+		
+		double offX = (Math.random() + r.nextInt(4)-1)*80;
+		double offY = (Math.random() + r.nextInt(4)-1)*80;
+		
+		this.x = x + offX;
+		this.y = y + offY;
+		
+		dx = offX/100;
+		dy = offY/100;
+		
+		bounds = new Rectangle((int)(x-radius), (int)(y-radius), (int)(radius*2), (int)(radius*2));
+
+	}
+	
 	void draw(Graphics2D g) {
 		g.setColor(Color.WHITE);
 		g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
 	}
 	
-	void updateA(Asteroid[] asteroids) {
+	void updateA(List<Asteroid> asteroids) {
 		ndx = dx;
 		ndy = dy;
 		
 		Asteroid closest = null;
 		double closestDist = Double.POSITIVE_INFINITY;
 		
-		for(Asteroid a : asteroids) {
-			if(a != this && a.getBounds().intersects(this.getBounds())) {
-
+		for(Asteroid a : asteroids)
+			if(a != this && a.getBounds().intersects(this.getBounds()))
 				if(distSQ(a) < closestDist) {
 					closestDist = distSQ(a);
 					closest = a;
 				}
-			}
-		}
 		
 		if(closest != null) {
 			double distX = this.x-closest.x;
@@ -87,6 +105,9 @@ public class Asteroid {
 		bounds.setLocation((int)(x-radius), (int)(y-radius));
 	}
 	
+	public void explode() {
+		System.out.println("This function is not complete");
+	}
 	Rectangle getBounds() {
 		return bounds;
 	}

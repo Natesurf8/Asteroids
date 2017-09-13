@@ -1,8 +1,8 @@
-package main;
+package io;
 
 import java.awt.event.KeyEvent;
 
-public class ControllerInfo {
+public class Controller {
 	
 	private static boolean up;
 	private static boolean down;
@@ -16,7 +16,7 @@ public class ControllerInfo {
 	public static boolean getRight() { return right; }
 	public static boolean getSpace() { return space; }
 	
-	static void update(KeyEvent e, boolean isPressed) {
+	public static void update(KeyEvent e, boolean isPressed) {
 		char c = e.getKeyChar();
 		int keyCode = e.getKeyCode();
 		
@@ -24,7 +24,7 @@ public class ControllerInfo {
 			up = isPressed;
 		else if(keyCode == KeyEvent.VK_DOWN || c == 's' || c == 'S')
 			down = isPressed;
-		else if(keyCode == KeyEvent.VK_LEFT || c == 'a' || 'c' == 'A')
+		else if(keyCode == KeyEvent.VK_LEFT || c == 'a' || c == 'A')
 			left = isPressed;
 		else if(keyCode == KeyEvent.VK_RIGHT || c == 'd' || c == 'D')
 			right = isPressed;

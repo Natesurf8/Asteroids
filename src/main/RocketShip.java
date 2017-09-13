@@ -1,18 +1,20 @@
 package main;
 
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.util.List;
 import java.util.Random;
+
+import io.Controller;
 
 public class RocketShip {
 	
-	private static final double thrust = 0.05;
+	private static final double thrust = 0.045;
 	private static final double turn = 0.045;
 	
-	private int hWidth = 7;
+	private int hWidth = 6;
 	private int hHeight = 10;
 	
 	private double x;
@@ -23,45 +25,70 @@ public class RocketShip {
 	
 	private double heading;
 	
-	private boolean accelerating;
 	private boolean isDead;
 	
 	private int health;
-		
+	
+	/**
+	 * The thing you control.
+	 * @param x,y The desired region to spawn.
+	 */
 	RocketShip(int x, int y) {
-		Random r = new Random();
-		this.x = x + ( (Math.random()-0.5)*2 + (r.nextInt(2)-0.5) ) * 50;
-		this.y = x + ( (Math.random()-0.5)*2 + (r.nextInt(2)-0.5) ) * 50;
+		this.x = x;
+		this.y = y;
 		
 		vx = 0;
 		vy = 0;
 		heading = 0;
 		
-		health = 3;
+		health = 4;
 	}
 	
-	void update(Asteroid[] asteroids, int winWidth, int winHeight) {
+	void update(List<Asteroid> asteroids, int winWidth, int winHeight) {
 		Rectangle bounds = getBounds();
-		for(Asteroid a : asteroids)
-			if(bounds.intersects(a.getBounds())) {
-				isDead = true;
-				return;
+		//dies when hits an asteroid.
+		for(int i = asteroids.size()-1; i>=0; i--)
+			if(bounds.intersects(asteroids.get(i).getBounds())) {
+				if(health == 1) {
+					isDead = true;
+					return;
+				}
+				else {
+					health--;
+					int r = (int)(Math.random()+0.5);
+					vx = -vx*(r+0.5);
+					vy = -vy*(r+0.5);
+					
+					if(asteroids.get(i).getRadius()>17)
+						for(int j = 0; j<3; j++)
+							asteroids.add(new Asteroid((int)x, (int)y, 0.3));
+					else
+						asteroids.get(i).explode();
+					
+						
+					asteroids.remove(i);
+				}
+			
 			}
 		
-		if(ControllerInfo.getLeft())
+		//turns
+		if(Controller.getLeft())
 			heading -= turn;
-		else if(ControllerInfo.getRight())
+		else if(Controller.getRight())
 			heading += turn;
 		
-		if(ControllerInfo.getUp()) {
-			//remember, the triangle itself is rotated 90 degrees
+		//accelerates
+		if(Controller.getUp()) {
+			//remember, the triangle itself is rotated +90 degrees
 			vx += -Math.sin(-heading)*thrust;
 			vy += -Math.cos(-heading)*thrust;
 		}
 		
+		//moves
 		this.x += vx;
 		this.y += vy;
-
+		
+		//wraps around screen
 		if(x<0)
 			x = winWidth;
 		else if(x>winWidth)
@@ -75,8 +102,8 @@ public class RocketShip {
 	
 	Rectangle getBounds() {
 		return new Rectangle(
-				(int)(x-hWidth+0.5), 
-				(int)(y-hHeight+0.5), 
+				(int)x-hWidth, 
+				(int)y-hHeight, 
 				hWidth*2, 
 				hHeight*2
 		);
@@ -84,23 +111,28 @@ public class RocketShip {
 	
 	void draw(Graphics2D g) {
 		AffineTransform reset = g.getTransform();
-				
-		g.translate((int)x, (int)y);
+		
+		//rotate + translate
+		g.translate((int)x, (int)y - (int)(hHeight/2.5));
 		g.rotate(heading);
+		g.translate(0, (int)(hHeight/2.5));
 		
+		//g.translate(-hWidth, -2*ahHeight);
 		
+		//body
 		g.setColor(getColor());
-		g.fillRect(-hWidth+1, -hHeight, 2*hWidth-1, 2*hHeight);
+		g.fillRect(-hWidth, -hHeight, 2*hWidth, 2*hHeight);
 		
+		//head
 		g.setColor(getColor().darker().darker());
 		g.fillPolygon(new int[] {-hWidth, 0, hWidth}, 
 				new int[] {-hHeight, (int)(-hHeight*2.5), -hHeight}, 
 				3);
 		
-		if(ControllerInfo.getUp()) {
+		if(Controller.getUp()) {
 			g.setColor(new Color(200, 60, 0));
-			g.fillPolygon(new int[]{-hWidth+1, 0, hWidth}, 
-					new int[]{hHeight, (int)( hHeight*(2.1+Math.random()/1.5) ), hHeight}, 
+			g.fillPolygon(new int[]{-hWidth, 0, hWidth}, 
+					new int[]{hHeight, (int)( hHeight*(2.1+Math.random()*0.66) ), hHeight}, 
 					3);
 		}
 		
@@ -109,10 +141,12 @@ public class RocketShip {
 	
 	private Color getColor() {
 		switch(health) {
+			case 4:
+				return new Color(250,250,250);
 			case 3:
-				return new Color(200,200,200);
+				return new Color(210, 210, 210);
 			case 2:
-				return new Color(150, 50, 0);
+				return new Color(150, 100, 100);
 			case 1:
 				return new Color(70, 0, 0);
 			case 0:
